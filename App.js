@@ -13,28 +13,24 @@ const {
   Transform
 } = ART;
 
-class PlusIcon extends React.Component {
-    render() {
-        const path = [
-		 [ 'M', 8, 12 ], [ 'L', 8, 20 ], [ 'L', 12, 20 ], [ 'L', 12, 12 ], [ 'L', 20, 12 ], [ 'L', 20, 8 ],
-		 [ 'L', 12, 8 ], [ 'L', 12, 0 ], [ 'L', 8, 0 ], [ 'L', 8, 8 ], [ 'L', 0, 8 ], [ 'L', 0, 12 ], [ 'L', 8, 12 ]
-		];
+const IconBuilder = (path, defaultSize) => (props) => {
+	const segment = /([astvzqmhlc])([^astvzqmhlc]*)/ig;
+	const number = /-?[0-9]*\.?[0-9]+(?:e[-+]?\d+)?/ig;
+	const {size = 10, fill = "#f0AFF8"} = props;
 
-		const {width = 10, height = 10} = this.props;
-		const viewBox = 20;
-		const rx = width/viewBox, ry = height/viewBox;
+	const d = path.replace(segment, (_, cmd, args) => {
+		let numbers = args.match(number) || [];
+		return cmd + numbers.map(n => n * size/defaultSize).join(' ');
+	});
 
-		const d = path.map(([t, x, y]) => t + (x*rx) + ',' + (y*ry)).join(' ');
-        return (
-            <Surface width={width} height={height}>
-				<Shape
-                    fill="#00AFF8" 
-					d={d + ' Z'}
-				></Shape>
-            </Surface>
-        );
-    }
-}
+	return (
+		<Surface width={size} height={size}>
+			<Shape fill={fill} d={d} />
+		</Surface>
+	);
+};
+
+const PlusIcon = IconBuilder("M4 6v4h2V6h4V4H6V0H4v4H0v2h4z", 10);
 
 export default class App extends React.Component {
   render() {
@@ -43,8 +39,7 @@ export default class App extends React.Component {
         <Text>Open up App.js to start working on your app!</Text>
         <Text>Changes you make will automatically reload.</Text>
         <Text>Shake your phone to open the developer menu.</Text>
-		<PlusIcon
-			width={50} height={50} />
+		<PlusIcon size={50} fill="red" />
       </View>
     );
   }
