@@ -1,201 +1,378 @@
-This project was bootstrapped with [Create React Native App](https://github.com/react-community/create-react-native-app).
+# How to render svg files with react native ART?
 
-Below you'll find information about performing common tasks. The most recent version of this guide is available [here](https://github.com/react-community/create-react-native-app/blob/master/react-native-scripts/template/README.md).
+Ok, so let's start with a simple question, **how does one ports an svg file to react native?**  
+There are already libraries like [react-native-svg](https://github.com/react-native-community/react-native-svg) which are doing a pretty good job, so if you want a quick solution go with that.  
+However we are not gonna use any library, RN capable enough to render .SVG files.  
+Say hello to [react native ART](https://github.com/react-native-china/react-native-ART-doc/blob/master/doc.md), The interface looks like this.  
 
-## Table of Contents
 
-* [Updating to New Releases](#updating-to-new-releases)
-* [Available Scripts](#available-scripts)
-  * [npm start](#npm-start)
-  * [npm test](#npm-test)
-  * [npm run ios](#npm-run-ios)
-  * [npm run android](#npm-run-android)
-  * [npm run eject](#npm-run-eject)
-* [Writing and Running Tests](#writing-and-running-tests)
-* [Environment Variables](#environment-variables)
-  * [Configuring Packager IP Address](#configuring-packager-ip-address)
-* [Customizing App Display Name and Icon](#customizing-app-display-name-and-icon)
-* [Sharing and Deployment](#sharing-and-deployment)
-  * [Publishing to Expo's React Native Community](#publishing-to-expos-react-native-community)
-  * [Building an Expo "standalone" app](#building-an-expo-standalone-app)
-  * [Ejecting from Create React Native App](#ejecting-from-create-react-native-app)
-    * [Build Dependencies (Xcode & Android Studio)](#build-dependencies-xcode-android-studio)
-    * [Should I Use ExpoKit?](#should-i-use-expokit)
-* [Troubleshooting](#troubleshooting)
-  * [Networking](#networking)
-  * [iOS Simulator won't open](#ios-simulator-wont-open)
-  * [QR Code does not scan](#qr-code-does-not-scan)
-
-## Updating to New Releases
-
-You should only need to update the global installation of `create-react-native-app` very rarely, ideally never.
-
-Updating the `react-native-scripts` dependency of your app should be as simple as bumping the version number in `package.json` and reinstalling your project's dependencies.
-
-Upgrading to a new version of React Native requires updating the `react-native`, `react`, and `expo` package versions, and setting the correct `sdkVersion` in `app.json`. See the [versioning guide](https://github.com/react-community/create-react-native-app/blob/master/VERSIONS.md) for up-to-date information about package version compatibility.
-
-## Available Scripts
-
-If Yarn was installed when the project was initialized, then dependencies will have been installed via Yarn, and you should probably use it to run these commands as well. Unlike dependency installation, command running syntax is identical for Yarn and NPM at the time of this writing.
-
-### `npm start`
-
-Runs your app in development mode.
-
-Open it in the [Expo app](https://expo.io) on your phone to view it. It will reload if you save edits to your files, and you will see build errors and logs in the terminal.
-
-Sometimes you may need to reset or clear the React Native packager's cache. To do so, you can pass the `--reset-cache` flag to the start script:
-
-```
-npm start --reset-cache
-# or
-yarn start --reset-cache
+```javascript
+import {ART} from 'react-native';
+const {
+  Surface,
+  Shape,
+  Group,
+  Text,
+  Path,
+  ClippingRectangle,
+  LinearGradient,
+  RadialGradient,
+  Pattern,
+  Transform
+} = React.ART
 ```
 
-#### `npm test`
+We have pretty much everything we need to render any .SVG file.    
+Let's start with simple icon, like
+<img src="images/ic_add.svg" style="width:40px" alt="icons" /> exported from skatch app.
+which you an export by right-clicking on the container and choosing "Copy SVG Code".
 
-Runs the [jest](https://github.com/facebook/jest) test runner on your tests.
+<img src="images/screen_ic_add.png" style="width:400px" alt="icons" />
 
-#### `npm run ios`
-
-Like `npm start`, but also attempts to open your app in the iOS Simulator if you're on a Mac and have it installed.
-
-#### `npm run android`
-
-Like `npm start`, but also attempts to open your app on a connected Android device or emulator. Requires an installation of Android build tools (see [React Native docs](https://facebook.github.io/react-native/docs/getting-started.html) for detailed setup). We also recommend installing Genymotion as your Android emulator. Once you've finished setting up the native build environment, there are two options for making the right copy of `adb` available to Create React Native App:
-
-##### Using Android Studio's `adb`
-
-1. Make sure that you can run adb from your terminal.
-2. Open Genymotion and navigate to `Settings -> ADB`. Select “Use custom Android SDK tools” and update with your [Android SDK directory](https://stackoverflow.com/questions/25176594/android-sdk-location).
-
-##### Using Genymotion's `adb`
-
-1. Find Genymotion’s copy of adb. On macOS for example, this is normally `/Applications/Genymotion.app/Contents/MacOS/tools/`.
-2. Add the Genymotion tools directory to your path (instructions for [Mac](http://osxdaily.com/2014/08/14/add-new-path-to-path-command-line/), [Linux](http://www.computerhope.com/issues/ch001647.htm), and [Windows](https://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/)).
-3. Make sure that you can run adb from your terminal.
-
-#### `npm run eject`
-
-This will start the process of "ejecting" from Create React Native App's build scripts. You'll be asked a couple of questions about how you'd like to build your project.
-
-**Warning:** Running eject is a permanent action (aside from whatever version control system you use). An ejected app will require you to have an [Xcode and/or Android Studio environment](https://facebook.github.io/react-native/docs/getting-started.html) set up.
-
-## Customizing App Display Name and Icon
-
-You can edit `app.json` to include [configuration keys](https://docs.expo.io/versions/latest/guides/configuration.html) under the `expo` key.
-
-To change your app's display name, set the `expo.name` key in `app.json` to an appropriate string.
-
-To set an app icon, set the `expo.icon` key in `app.json` to be either a local path or a URL. It's recommended that you use a 512x512 png file with transparency.
-
-## Writing and Running Tests
-
-This project is set up to use [jest](https://facebook.github.io/jest/) for tests. You can configure whatever testing strategy you like, but jest works out of the box. Create test files in directories called `__tests__` or with the `.test` extension to have the files loaded by jest. See the [the template project](https://github.com/react-community/create-react-native-app/blob/master/react-native-scripts/template/App.test.js) for an example test. The [jest documentation](https://facebook.github.io/jest/docs/en/getting-started.html) is also a wonderful resource, as is the [React Native testing tutorial](https://facebook.github.io/jest/docs/en/tutorial-react-native.html).
-
-## Environment Variables
-
-You can configure some of Create React Native App's behavior using environment variables.
-
-### Configuring Packager IP Address
-
-When starting your project, you'll see something like this for your project URL:
-
-```
-exp://192.168.0.2:19000
+Unfortunately sketch is not friendly, so it's not clear how to convert a complicated svg like this, to react native ART primitives like `Shape` or `Path`.
+```html
+<svg width="10px" height="10px" viewBox="0 0 10 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M4,6 L6.08689958e-15,6 L5.37635684e-15,4 L4,4 L4,3.6e-15 L6,3.6e-15 L6,4 L10,4 L10,6 L6,6 L6,10 L4,10 L4,6 Z" id="path-1"></path>
+    </defs>
+    <g id="Icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icon/Outline/ic_add" transform="translate(-15.000000, -15.000000)">
+            <g id="icon">
+                <g transform="translate(20.000000, 20.000000) rotate(-270.000000) translate(-20.000000, -20.000000) translate(15.000000, 15.000000)">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <g id="Combined-Shape" fill-rule="nonzero"></g>
+                    <g id="↪-Color" mask="url(#mask-2)">
+                        <g transform="translate(-19.000000, -19.000000)" id="Color/Blue">
+                            <g>
+                                <rect id="↳-🎨-Color" fill="#00A0E1" x="-1.42e-14" y="3.2e-14" width="48" height="48"></rect>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
 ```
 
-The "manifest" at that URL tells the Expo app how to retrieve and load your app's JavaScript bundle, so even if you load it in the app via a URL like `exp://localhost:19000`, the Expo client app will still try to retrieve your app at the IP address that the start script provides.
+Looking at the svg content, we don't really need `mast`, so we are going to get rid of it.
+Checking the sketch file, it looks like our designer painted the background as used the + icon as a mask.
 
-In some cases, this is less than ideal. This might be the case if you need to run your project inside of a virtual machine and you have to access the packager via a different IP address than the one which prints by default. In order to override the IP address or hostname that is detected by Create React Native App, you can specify your own hostname via the `REACT_NATIVE_PACKAGER_HOSTNAME` environment variable:
 
-Mac and Linux:
+<img src="images/screen_mask.png" style="width:350px" alt="icons" />
 
-```
-REACT_NATIVE_PACKAGER_HOSTNAME='my-custom-ip-address-or-hostname' npm start
-```
+Let's fix that, untick the `Mask` option, remove background color and instead choose the fill color for the combined shape.
 
-Windows:
-```
-set REACT_NATIVE_PACKAGER_HOSTNAME='my-custom-ip-address-or-hostname'
-npm start
-```
+<img src="images/screen_no_mask.png" style="width:500px" alt="icons" />
 
-The above example would cause the development server to listen on `exp://my-custom-ip-address-or-hostname:19000`.
+And export again ...
 
-## Sharing and Deployment
+```html
 
-Create React Native App does a lot of work to make app setup and development simple and straightforward, but it's very difficult to do the same for deploying to Apple's App Store or Google's Play Store without relying on a hosted service.
-
-### Publishing to Expo's React Native Community
-
-Expo provides free hosting for the JS-only apps created by CRNA, allowing you to share your app through the Expo client app. This requires registration for an Expo account.
-
-Install the `exp` command-line tool, and run the publish command:
-
-```
-$ npm i -g exp
-$ exp publish
+<svg width="10px" height="10px" viewBox="0 0 10 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icon/Outline/ic_add" transform="translate(-15.000000, -15.000000)" fill="#00AFF8" fill-rule="nonzero">
+            <g id="icon">
+                <g transform="translate(20.000000, 20.000000) rotate(-270.000000) translate(-20.000000, -20.000000) translate(15.000000, 15.000000)">
+                    <path d="M4,6 L6.08689958e-15,6 L5.37635684e-15,4 L4,4 L4,3.6e-15 L6,3.6e-15 L6,4 L10,4 L10,6 L6,6 L6,10 L4,10 L4,6 Z" id="Combined-Shape"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
 ```
 
-### Building an Expo "standalone" app
+Much better, not sign of `mask` anymore, looking at the svg content those `transforms` are useless, the portent `g` element is doing the opposite transform. We can fix these issues by hand but we don't need to! We have [SVGO](https://github.com/svg/svgo) a really nice command line tool to optimize svg files.
 
-You can also use a service like [Expo's standalone builds](https://docs.expo.io/versions/latest/guides/building-standalone-apps.html) if you want to get an IPA/APK for distribution without having to build the native code yourself.
-
-### Ejecting from Create React Native App
-
-If you want to build and deploy your app yourself, you'll need to eject from CRNA and use Xcode and Android Studio.
-
-This is usually as simple as running `npm run eject` in your project, which will walk you through the process. Make sure to install `react-native-cli` and follow the [native code getting started guide for React Native](https://facebook.github.io/react-native/docs/getting-started.html).
-
-#### Should I Use ExpoKit?
-
-If you have made use of Expo APIs while working on your project, then those API calls will stop working if you eject to a regular React Native project. If you want to continue using those APIs, you can eject to "React Native + ExpoKit" which will still allow you to build your own native code and continue using the Expo APIs. See the [ejecting guide](https://github.com/react-community/create-react-native-app/blob/master/EJECTING.md) for more details about this option.
-
-## Troubleshooting
-
-### Networking
-
-If you're unable to load your app on your phone due to a network timeout or a refused connection, a good first step is to verify that your phone and computer are on the same network and that they can reach each other. Create React Native App needs access to ports 19000 and 19001 so ensure that your network and firewall settings allow access from your device to your computer on both of these ports.
-
-Try opening a web browser on your phone and opening the URL that the packager script prints, replacing `exp://` with `http://`. So, for example, if underneath the QR code in your terminal you see:
-
-```
-exp://192.168.0.1:19000
+```bash
+$ npm install -g svgo
+$ svgo -i source.svg -o optimized.svg
 ```
 
-Try opening Safari or Chrome on your phone and loading
+It will do a lot of optimizations, after running `svgo -i plus.svg -o plus_o.svg` with `plus.svg` having the content above, we get the following output from svgo.
 
+
+```html
+<svg width="10" height="10" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 4V0h2v4h4v2H6v4H4V6H0V4h4z" fill="#00AFF8" fill-rule="nonzero"/>
+</svg>
 ```
-http://192.168.0.1:19000
+All those useless translate & transforms are gone, now let's start porting this to a react native component.
+
+
+```javascript
+class PlusIcon extends React.Component {
+  render() {
+    const d = "M4 4V0h2v4h4v2H6v4H4V6H0V4h4z";
+    const {fill = 'red'} = this.props;
+
+  	return (
+  		<Surface width={10} height={10}>
+  			<Shape fill={fill} d={d} />
+  		</Surface>
+  	);
+  }
+}
+// example use: <PlusIcon fill="red" />
 ```
 
-and
+But wait a minute, svg stands for scalable vector graphics but the `width` & `height` are fixed here.  Let's take a closer look at the `d` attribute.
 
+- Its drawing in a `10 x 10` grid (the svg width & height).
+- `M4 4` move to location (x,y) = (4,4)
+- `V0` draw a vertical line with length 0
+- `h2` draw a horizontal line from where you are with length 2
+- `v4` draw a vertical line from where you are with length 4
+- ...
+- `z` close the path
+
+Take a moment and think about what will happen to these numbers if you scale the svg file to be `20 x 20` instead of `10 x 10`?
+
+- d for 10 x 10 = `M4 4V0h2v4h4v2H6v4H4V6H0V4h4z`
+- d for 20 x 20 = `M8 8V0h4v8h8v4H12v8H8V12H0V8h8z`
+
+As you might have already guessed they double in value, let's fix our `PlusIcon` component to take advantage of this fact.
+
+
+```javascript
+class PlusIcon extends React.Component {
+  render() {
+    const path = "M4 4V0h2v4h4v2H6v4H4V6H0V4h4z";
+    const {fill = 'red', size = 10} = this.props;
+
+      //regex to parse the path
+  	const segment = /([astvzqmhlc])([^astvzqmhlc]*)/ig;
+  	const number = /-?[0-9]*\.?[0-9]+(?:e[-+]?\d+)?/ig;
+
+  	const d = path.replace(segment, (_, cmd, args) => {
+  		let numbers = args.match(number) || [];
+  		return cmd + numbers.map(n => n * size/10).join(' ');
+  	});
+
+  	return (
+  		<Surface width={size} height={size}>
+  			<Shape fill={fill} d={d} />
+  		</Surface>
+  	);
+  }
+}
+// example use: <PlusIcon fill="red" size={200} />
 ```
-http://192.168.0.1:19001
+
+Let's try a more complicated icon, say a tractor!
+
+<img src="images/screen_tractor.png" style="width:400px" alt="icons" />
+
+There is no sign of `mask` here, no need to worry about it this time.
+If we do the same procedure, export from sketch then use svgo to optimize we get the following.
+
+
+```html
+<svg width="97" height="68" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" fill-rule="evenodd">
+        <path d="M76.347 ... z" fill="#52524F"/>
+        <path d="..." fill="#8E908C"/>
+        <path d="..." fill="#52524F"/>
+        <path d="..." fill="#D23537"/>
+    </g>
+</svg>
 ```
 
-If this works, but you're still unable to load your app by scanning the QR code, please open an issue on the [Create React Native App repository](https://github.com/react-community/create-react-native-app) with details about these steps and any other error messages you may have received.
+We can ignore `g` element, It doesn't make any visual difference.  
+Two things are different this time.  
 
-If you're not able to load the `http` URL in your phone's web browser, try using the tethering/mobile hotspot feature on your phone (beware of data usage, though), connecting your computer to that WiFi network, and restarting the packager. If you are using a VPN you may need to disable it.
+ 1. first we have multiple path elements
+ 2. width != height
 
-### iOS Simulator won't open
+Let's work on the first issue first, our desired interface would be a general purpose component that can render any array of `d` attributes.
 
-If you're on a Mac, there are a few errors that users sometimes see when attempting to `npm run ios`:
 
-* "non-zero exit code: 107"
-* "You may need to install Xcode" but it is already installed
-* and others
+```javascript
+class TractorIcon extends React.Component {
+  render() {
+    return (
+      <IconBuilder
+        width={97}
+        height={68}
+        paths={[
+          {fill: "#52524F", d:"..."},
+          {fill:"#8E908C", d:"..." },
+          {fill:"#52524F", d:"..."},
+          {fill:"#D23537", d:"..." }
+        ]}
+      />
+    );
+  }
+}
+```
 
-There are a few steps you may want to take to troubleshoot these kinds of errors:
+And a first try of `IconBuilder` implementation ignoring scaling support would be.
 
-1. Make sure Xcode is installed and open it to accept the license agreement if it prompts you. You can install it from the Mac App Store.
-2. Open Xcode's Preferences, the Locations tab, and make sure that the `Command Line Tools` menu option is set to something. Sometimes when the CLI tools are first installed by Homebrew this option is left blank, which can prevent Apple utilities from finding the simulator. Make sure to re-run `npm/yarn run ios` after doing so.
-3. If that doesn't work, open the Simulator, and under the app menu select `Reset Contents and Settings...`. After that has finished, quit the Simulator, and re-run `npm/yarn run ios`.
+```javascript
+class IconBuilder extends React.Component {
+  renderPath(path, fill, key, scale = 1) {
+    const segment = /([astvzqmhlc])([^astvzqmhlc]*)/ig;
+    const number = /-?[0-9]*\.?[0-9]+(?:e[-+]?\d+)?/ig;
 
-### QR Code does not scan
+    const d = path.replace(segment, (_, cmd, args) => {
+      let numbers = args.match(number) || [];
+      return cmd + numbers.map(n => n * scale).join(' ');
+    });
+    return (<Shape key={key} fill={fill} d={d} />);
+  }
+  render() {
+    const {paths, width, height} = this.props;
 
-If you're not able to scan the QR code, make sure your phone's camera is focusing correctly, and also make sure that the contrast on the two colors in your terminal is high enough. For example, WebStorm's default themes may [not have enough contrast](https://github.com/react-community/create-react-native-app/issues/49) for terminal QR codes to be scannable with the system barcode scanners that the Expo app uses.
+    return(
+      <Surface width={width} height={height}>
+        {paths.map(
+          (path, idx) => this.renderPath(path.d, path.fill, idx)
+        )}
+      </Surface>
+    );
+  }
+}
+```
+And we get
 
-If this causes problems for you, you may want to try changing your terminal's color theme to have more contrast, or running Create React Native App from a different terminal. You can also manually enter the URL printed by the packager script in the Expo app's search bar to load it manually.
+<img src="images/screen_tractor_1.png" style="width:400px" alt="icons" />
+
+Now let's consider the second issue, we want the **s**vg to be **scalable**!  
+
+- **Movement Commands**
+
+  - `M x,y`	Move to the absolute coordinates x,y
+  - `m x,y`	Same as `M` but relative
+  - `L x,y`	Draw a straight line to the absolute coordinates x,y
+  - `l x,y`	Same as `L` but relative
+  - `H x`	Draw a line horizontally to the exact coordinate x
+  - `h x`	Same as `H` but relative
+  - `V y`	Draw a line vertically to the exact coordinate y
+  - `v y`	Same as `V` but relative
+  - `Z` (or z )	Draw a straight line back to the start of the path
+
+- **Arc Commands**
+  - `C cX1,cY1 cX2,cY2 eX,eY`	Draw a bezier curve ...
+  - `S cX2,cY2 eX,eY`	Same a C command ...
+  - `Q cX,cY eX,eY`	Draw a bezier curve ...
+  - `T eX,eY` Basically a Q command ...
+  - `A rX,rY rotation, arc, sweep, eX,eY`	Draw an arc that is based on the curve an oval makes. First define the width and height of the oval. Then the rotation of the oval. Along with the end point, this makes two possible ovals. So the arc and sweep are either 0 or 1 and determine which oval and which path it will take.
+  - `t` Same with all relative values
+  - `q` Same with all relative values
+  - `c` Same with all relative values
+  - `s` Same with all relative values
+  - `a` Same with relative values for eX,eY
+
+For the full description see [css-tricks article](https://css-tricks.com/svg-path-syntax-illustrated-guide/), i copied the descriptions above from that article.  
+It's pretty obvious that X,Y values will be relatively scaled to width and height respectively.
+
+<img src="images/screen_scale.png" style="width:600px" alt="icons" />
+
+As you can see, for all Bezier commands, simply scaling relative in X & Y direction would work. What about the `A` command you might ask?  
+Keep rotation, arc & sweep parameters and scale the rest.
+
+
+```javascript
+class IconBuilder extends React.Component {
+  scaleCommand(cmd, numbers, scaleX, scaleY) {
+    if(/(M|L|H|V|Z|C|S|Q|T)/i.test(cmd)) {
+      for(let idx = 0; idx < numbers.length; ++idx) {
+        numbers[idx] *= idx%2 ? scaleX : scaleY;
+      }
+    }
+    if(/A/i.test(cmd)) {
+      for(let idx = 0; idx < numbers.length; ++idx) {
+        if(idx%7 === 0 || idx%7 === 5) {
+          numbers[idx] *= scaleY;
+        }
+        if(idx%7 === 1 || idx%7 === 6) {
+          numbers[idx] *= scaleX;
+        }
+      }
+    }
+    return cmd + numbers.join(' ');
+  }
+  renderPath(path, fill, key, scaleX, scaleY) {
+    const segment = /([astvzqmhlc])([^astvzqmhlc]*)/ig;
+    const number = /-?[0-9]*\.?[0-9]+(?:e[-+]?\d+)?/ig;
+
+    const d = path.replace(segment, (_, cmd, args) => {
+      let numbers = args.match(number) || [];
+      return this.scaleCommand(cmd, numbers, scaleX, scaleY);
+    });
+    return (<Shape key={key} fill={fill} d={d} />);
+  }
+  render() {
+    const {paths, orgWidth, orgHeight} = this.props;
+    const {width = orgWidth, height = orgHeight} = this.props;
+
+    const scaleY = width/orgWidth,
+          scaleX = height/orgHeight;
+    return(
+      <Surface width={width} height={height}>
+        {paths.map((path, idx) =>
+          this.renderPath(path.d, path.fill, idx, scaleX, scaleY)
+        )}
+      </Surface>
+    );
+  }
+}
+```
+
+And our Icon will be like:
+
+
+```javascript
+class TractorIcon extends React.Component {
+  render() {
+    const orgWidth = 97, orgHeight = 68;
+    const {width = orgWidth, height = orgHeight} = this.props;
+    return (
+      <IconBuilder
+        orgWidth={97}
+        orgHeight={68}
+        width={width}
+        height={height}
+        paths={[
+          {fill: "#52524F", d: "..."},
+          {fill:"#8E908C", d:"..." },
+          {fill:"#52524F", d:"..."},
+          {fill:"#D23537", d:"..." },
+        ]}
+      />
+    );
+  }
+}
+```
+
+Now if we try to render the same icon with different scales ...
+
+```javascript
+export default class App extends React.Component {
+  render() {
+    return (
+      <View style={styles.container}>
+  		  <TractorIcon height={68*2} width={97} />
+  		  <TractorIcon height={68} width={97*2} />
+  		  <TractorIcon height={68*.5} width={97*.5} />
+  		  <TractorIcon height={68*1.5} width={97*1.5} />
+      </View>
+    );
+  }
+}
+```
+
+We get:  
+
+<img src="images/screen_scaled.png" style="width:400px" alt="icons" />
+
+
+How a look at /App.js, It has all the source code.  
+PRs are welcome :-)
