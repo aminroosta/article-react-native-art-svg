@@ -1,10 +1,8 @@
 # How to render svg files with react native ART?
 
-Ok, so let's start with a simple question, **how does one ports an svg file to react native?**  
-There are already libraries like [react-native-svg](https://github.com/react-native-community/react-native-svg) which are doing a pretty good job, so if you want a quick solution go with that.  
-However we are not gonna use any library, RN capable enough to render .SVG files.  
-Say hello to [react native ART](https://github.com/react-native-china/react-native-ART-doc/blob/master/doc.md), The interface looks like this.  
+We are not going to use any svg library, instead we will take advantage of [react native ART](https://github.com/react-native-china/react-native-ART-doc/blob/master/doc.md) library.
 
+The interface looks like this.  
 
 ```javascript
 import {ART} from 'react-native';
@@ -22,14 +20,14 @@ const {
 } = React.ART
 ```
 
-We have pretty much everything we need to render any .SVG file.    
-Let's start with simple icon, like
-<img src="images/ic_add.svg" style="width:40px" alt="icons" /> exported from skatch app.
-which you an export by right-clicking on the container and choosing "Copy SVG Code".
+Let's start with simple svg, a plus icon like (
+<img src="images/ic_add.svg" style="width:30px" alt="icons" />).  
+I've exported it from skatch app by right-clicking on the container and choosing "Copy SVG Code".
 
-<img src="images/screen_ic_add.png" style="width:400px" alt="icons" />
+<img src="images/screen_ic_add.png" style="width:300px" alt="icons" />
 
-Unfortunately sketch is not friendly, so it's not clear how to convert a complicated svg like this, to react native ART primitives like `Shape` or `Path`.
+Unfortunately the generated code is far from perfect, we have a long way to go before we can implement it in react native.  
+Let's make some adjustments ...
 ```html
 <svg width="10px" height="10px" viewBox="0 0 10 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
@@ -59,20 +57,18 @@ Unfortunately sketch is not friendly, so it's not clear how to convert a complic
 </svg>
 ```
 
-Looking at the svg content, we don't really need `mast`, so we are going to get rid of it.
-Checking the sketch file, it looks like our designer painted the background as used the + icon as a mask.
-
+Looking at the svg content, we don't really need the `mast`.  
 
 <img src="images/screen_mask.png" style="width:350px" alt="icons" />
 
-Let's fix that, untick the `Mask` option, remove background color and instead choose the fill color for the combined shape.
+In the sketch file, The + sign is masked on top of a colored background.
+Let's fix that, untick the `Mask` option, remove the background color and choose the fill color for the combined shape.
 
 <img src="images/screen_no_mask.png" style="width:500px" alt="icons" />
 
-And export again ...
-
+Now we have a clean shape.  
+If we export it again we get this.
 ```html
-
 <svg width="10px" height="10px" viewBox="0 0 10 10" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
     <desc>Created with Sketch.</desc>
@@ -89,23 +85,28 @@ And export again ...
 </svg>
 ```
 
-Much better, not sign of `mask` anymore, looking at the svg content those `transforms` are useless, the portent `g` element is doing the opposite transform. We can fix these issues by hand but we don't need to! We have [SVGO](https://github.com/svg/svgo) a really nice command line tool to optimize svg files.
+Much better, no sign of `mask` anymore. Now let's get rid of those `transform` attribute, they are useless because because the portent `g` element is doing the opposite transform. We can fix this or similar issues (useless `g` elements) by hand, but we don't need to!  
+
+We will use [SVGO](https://github.com/svg/svgo) library instead, a really nice command line tool to optimize svg files.
 
 ```bash
 $ npm install -g svgo
 $ svgo -i source.svg -o optimized.svg
 ```
 
-It will do a lot of optimizations, after running `svgo -i plus.svg -o plus_o.svg` with `plus.svg` having the content above, we get the following output from svgo.
+SVGO does a lot of optimizations (unfortunately not the mask optimization, that's why we needed to remove the mask manually).  
 
+After running `svgo -i plus.svg -o plus_o.svg` with `plus.svg` being the exported svg file, we get the following output.
 
 ```html
 <svg width="10" height="10" xmlns="http://www.w3.org/2000/svg">
   <path d="M4 4V0h2v4h4v2H6v4H4V6H0V4h4z" fill="#00AFF8" fill-rule="nonzero"/>
 </svg>
 ```
-All those useless translate & transforms are gone, now let's start porting this to a react native component.
+All those useless `translate` and `transforms` are gone, all those extra `g` elements are removed, the `d` attribute has been shortened, now we can actually start porting this to a react native component.
 
+
+Turns out RN ART library has a `<Shape />` component that is roughly equal to `<path />` element in svg, so our first attempt will be an almost one to one mapping to react native code.
 
 ```javascript
 class PlusIcon extends React.Component {
@@ -123,9 +124,13 @@ class PlusIcon extends React.Component {
 // example use: <PlusIcon fill="red" />
 ```
 
-But wait a minute, svg stands for scalable vector graphics but the `width` & `height` are fixed here.  Let's take a closer look at the `d` attribute.
+Instead of `<svg width="10" height="10" />` we are using `<Surface />` component and instead of `<path d="..." />` we are using `<Shape />`.  
 
-- Its drawing in a `10 x 10` grid (the svg width & height).
+But wait a minute, `width` & `height` are fixed here, It is not **scalable** (svg stands for scalable vector graphics after all)!  
+
+How can we fix that? Let's take a closer look at the `d` attribute.
+
+- It iss drawing in a `10 x 10` grid (the svg width & height).
 - `M4 4` move to location (x,y) = (4,4)
 - `V0` draw a vertical line with length 0
 - `h2` draw a horizontal line from where you are with length 2
@@ -133,13 +138,16 @@ But wait a minute, svg stands for scalable vector graphics but the `width` & `he
 - ...
 - `z` close the path
 
-Take a moment and think about what will happen to these numbers if you scale the svg file to be `20 x 20` instead of `10 x 10`?
+Please take a moment and think about what will happen to these numbers if when scale the svg file `2X` (e.g to be `20 x 20` instead of `10 x 10`)?
+
+I have actually done it manually in sketch and exported it, here is the output for both sizes.
 
 - d for 10 x 10 = `M4 4V0h2v4h4v2H6v4H4V6H0V4h4z`
 - d for 20 x 20 = `M8 8V0h4v8h8v4H12v8H8V12H0V8h8z`
 
-As you might have already guessed they double in value, let's fix our `PlusIcon` component to take advantage of this fact.
+As you might have already guessed all numbers are multiplied by a factor of `2`.  
 
+We will take advantage of this fact to fix our `PlusIcon` component.
 
 ```javascript
 class PlusIcon extends React.Component {
@@ -166,13 +174,18 @@ class PlusIcon extends React.Component {
 // example use: <PlusIcon fill="red" size={200} />
 ```
 
-Let's try a more complicated icon, say a tractor!
+We have a some regular expressions to parse the `path` attribute, `segment` is used to split commands to [`M4 4`, `V0`, ... , `z`] and `number` is used to split the numbers in each command.  
+
+We know the original size is `10`, so we just scale each number by `size/10` (`numbers.map(n => n * size/10).join(' ')`).  
+
+So far so good, now let's try a complicated icon, say a tractor!
 
 <img src="images/screen_tractor.png" style="width:400px" alt="icons" />
 
-There is no sign of `mask` here, no need to worry about it this time.
-If we do the same procedure, export from sketch then use svgo to optimize we get the following.
+This icon is not masked, we don't need to worry about `mask` this time.
+However this icon is much more complicated, we have multiple `path` elements with much more complicated `d` attributes.
 
+After optimizing the sketch output wiht SVGO we get the following result.
 
 ```html
 <svg width="97" height="68" xmlns="http://www.w3.org/2000/svg">
@@ -185,14 +198,13 @@ If we do the same procedure, export from sketch then use svgo to optimize we get
 </svg>
 ```
 
-We can ignore `g` element, It doesn't make any visual difference.  
-Two things are different this time.  
+We can ignore the `g` element, It doesn't make any visual difference.  
+But two things are different this time.  
 
  1. first we have multiple path elements
  2. width != height
 
-Let's work on the first issue first, our desired interface would be a general purpose component that can render any array of `d` attributes.
-
+Our desired interface would be a general purpose component that can render number of `d` attributes not just one, we will name it `<IconBuilder />` and here is how it will be used.
 
 ```javascript
 class TractorIcon extends React.Component {
@@ -213,7 +225,8 @@ class TractorIcon extends React.Component {
 }
 ```
 
-And a first try of `IconBuilder` implementation ignoring scaling support would be.
+
+If we ignore the scaling a trivial implementation for `IconBuilder` would be.
 
 ```javascript
 class IconBuilder extends React.Component {
@@ -240,11 +253,12 @@ class IconBuilder extends React.Component {
   }
 }
 ```
-And we get
 
 <img src="images/screen_tractor_1.png" style="width:400px" alt="icons" />
 
-Now let's consider the second issue, we want the **s**vg to be **scalable**!  
+Now let's consider the second issue, we want the **s**vg to be **scalable** on both directions this time, x & y. If we look at svg documentation we can see a pattern.  
+
+For the full description please see [css-tricks article](https://css-tricks.com/svg-path-syntax-illustrated-guide/), i copied the descriptions above from that article for simplicity.
 
 - **Movement Commands**
 
@@ -270,13 +284,13 @@ Now let's consider the second issue, we want the **s**vg to be **scalable**!
   - `s` Same with all relative values
   - `a` Same with relative values for eX,eY
 
-For the full description see [css-tricks article](https://css-tricks.com/svg-path-syntax-illustrated-guide/), i copied the descriptions above from that article.  
-It's pretty obvious that X,Y values will be relatively scaled to width and height respectively.
+It's clear that X,Y values will be scaled relative `x` & `y`(width and height) respectively.  
+Here is an example to prove this point. As you can see, even for more complicated commands  such as bezier arcs, scaling relative to `x` & `y` direction works.
 
 <img src="images/screen_scale.png" style="width:600px" alt="icons" />
 
-As you can see, for all Bezier commands, simply scaling relative in X & Y direction would work. What about the `A` command you might ask?  
-Keep rotation, arc & sweep parameters and scale the rest.
+What about the `A` command you might ask?  
+The answer is to keep rotation, arc & sweep parameters and scale the rest.
 
 
 ```javascript
@@ -326,8 +340,7 @@ class IconBuilder extends React.Component {
 }
 ```
 
-And our Icon will be like:
-
+And our `<IconBuilder />` will be used like this.
 
 ```javascript
 class TractorIcon extends React.Component {
@@ -352,7 +365,7 @@ class TractorIcon extends React.Component {
 }
 ```
 
-Now if we try to render the same icon with different scales ...
+Now let's render the same icon with different scales.
 
 ```javascript
 export default class App extends React.Component {
@@ -369,10 +382,8 @@ export default class App extends React.Component {
 }
 ```
 
-We get:  
-
 <img src="images/screen_scaled.png" style="width:400px" alt="icons" />
 
 
-How a look at /App.js, It has all the source code.  
-PRs are welcome :-)
+TADA! we have our icon, without any third-party library.  
+For the full source code see [react-native-art-svg](https://github.com/aminroosta/react-native-art-svg) on github.
